@@ -1,636 +1,1122 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Fiado Fácil - Libreta Digital</title>
-  
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    body {
-      background-color: #f1f5f9;
-      color: #1e293b;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      padding-bottom: 95px;
-    }
-    header {
-      background-color: #047857;
-      color: #ffffff;
-      position: sticky;
-      top: 0;
-      z-index: 30;
-      padding: 12px 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .header-content {
-      max-width: 600px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .btn-manual-top {
-      background-color: #065f46;
-      border: 1px solid #10b981;
-      color: white;
-      padding: 7px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .btn-manual-top:active {
-      transform: scale(0.96);
-    }
-    main {
-      max-width: 600px;
-      margin: 0 auto;
-      width: 100%;
-      padding: 16px;
-      flex: 1;
-    }
-    .summary-card {
-      background: linear-gradient(135deg, #065f46 0%, #134e4a 100%);
-      color: white;
-      border-radius: 18px;
-      padding: 18px;
-      box-shadow: 0 4px 12px rgba(6, 95, 70, 0.2);
-      margin-bottom: 16px;
-    }
-    .summary-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-    .total-amount {
-      font-size: 32px;
-      font-weight: 900;
-      color: #ffffff;
-      margin-top: 4px;
-    }
-    .debtors-badge {
-      background: rgba(4, 47, 46, 0.6);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 6px 12px;
-      border-radius: 12px;
-      text-align: right;
-    }
-    .search-bar {
-      margin-bottom: 16px;
-    }
-    .search-bar input {
-      width: 100%;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 15px;
-      outline: none;
-    }
-    .search-bar input:focus {
-      border-color: #059669;
-      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
-    }
-    .card-debtor {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .debtor-name {
-      font-size: 17px;
-      font-weight: 800;
-      color: #0f172a;
-      text-transform: capitalize;
-    }
-    .debtor-balance {
-      font-size: 19px;
-      font-weight: 900;
-      color: #dc2626;
-      text-align: right;
-    }
-    .btn-pay {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      color: #334155;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 4px;
-    }
-    .btn-pay:hover {
-      background: #ecfdf5;
-      color: #059669;
-      border-color: #10b981;
-    }
-    .bottom-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #ffffff;
-      border-top: 1px solid #e2e8f0;
-      padding: 12px 16px;
-      z-index: 40;
-    }
-    .bottom-inner {
-      max-width: 600px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .mic-btn {
-      background: #dc2626;
-      border: none;
-      color: white;
-      width: 58px;
-      height: 58px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
-      transition: transform 0.1s;
-    }
-    .mic-btn:active {
-      transform: scale(0.92);
-    }
-    .recording-active {
-      animation: pulse 1.2s infinite;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
-      70% { box-shadow: 0 0 0 16px rgba(220, 38, 38, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
-    }
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.65);
-      z-index: 50;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    .modal-overlay.active {
-      display: flex;
-    }
-    .modal-box {
-      background: white;
-      border-radius: 18px;
-      width: 100%;
-      max-width: 420px;
-      padding: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-    .form-group {
-      margin-bottom: 12px;
-    }
-    .form-group label {
-      display: block;
-      font-size: 11px;
-      font-weight: 800;
-      color: #475569;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .form-group input {
-      width: 100%;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 14px;
-      outline: none;
-    }
-    .btn-submit {
-      width: 100%;
-      background: #047857;
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 12px;
-      font-weight: 800;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    .type-selector {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .type-btn {
-      flex: 1;
-      padding: 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 700;
-      text-align: center;
-      cursor: pointer;
-      background: #f8fafc;
-    }
-    .type-btn.selected-fiado {
-      background: #fef2f2;
-      border-color: #ef4444;
-      color: #b91c1c;
-    }
-    .type-btn.selected-abono {
-      background: #ecfdf5;
-      border-color: #10b981;
-      color: #047857;
-    }
-    .empty-state {
-      background: white;
-      border: 2px dashed #cbd5e1;
-      border-radius: 16px;
-      padding: 30px 16px;
-      text-align: center;
-      margin-top: 10px;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fiado — Cuaderno digital del tendero</title>
+<meta name="description" content="El cuaderno de fiado del barrio, ahora digital con comandos de voz y WhatsApp. Funciona sin internet.">
+
+<!-- PWA -->
+<meta name="theme-color" content="#0B5D3B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fiado">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230B5D3B'/%3E%3Crect x='24' y='18' width='6' height='64' fill='%23C63A2A'/%3E%3Ctext x='58' y='68' font-family='Georgia,serif' font-size='52' fill='%23FAF7F0' text-anchor='middle'%3E%24%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --paper:#FAF7F0;
+  --paper-2:#F3EEE2;
+  --ink:#1B2430;
+  --ink-soft:#5A6472;
+  --green:#0B5D3B;
+  --green-deep:#083E28;
+  --red:#C63A2A;
+  --amber:#E8A33D;
+  --line:#E3DDCF;
+  --line-strong:#D6CEBB;
+  --shadow:0 1px 0 rgba(27,36,48,.04), 0 8px 24px -12px rgba(27,36,48,.25);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(100px + env(safe-area-inset-bottom));
+}
+.wrap{max-width:520px;margin:0 auto;min-height:100vh;position:relative;background:var(--paper)}
+.wrap::before{content:"";position:fixed;top:0;bottom:0;left:calc(50% - 260px + 26px);width:2px;background:var(--red);opacity:.55;z-index:0;pointer-events:none}
+@media(max-width:520px){.wrap::before{left:26px}}
+
+h1,h2,h3,.display{font-family:'Fraunces',Georgia,serif;font-weight:900;letter-spacing:-.02em;line-height:1.05;margin:0}
+.money{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+header{position:sticky;top:0;z-index:20;background:var(--green);color:var(--paper);padding:14px 18px 14px 44px;display:flex;align-items:center;gap:12px}
+header .brand{font-family:'Fraunces',serif;font-weight:900;font-size:22px}
+header .tienda{font-size:12px;opacity:.85;margin-top:1px}
+header .clock{margin-left:auto;text-align:right;font-size:11px;opacity:.9;line-height:1.25}
+header .clock b{display:block;font-size:14px;font-variant-numeric:tabular-nums}
+.gear{background:rgba(255,255,255,.14);border:0;color:var(--paper);width:40px;height:40px;border-radius:12px;font-size:19px;cursor:pointer;flex:0 0 auto}
+
+main{padding:18px 18px 20px 44px;position:relative;z-index:1}
+@media(max-width:520px){main{padding-left:44px}}
+
+.hero{background:linear-gradient(160deg,#0D6B44,#083E28);color:var(--paper);border-radius:20px;padding:22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
+.hero .big{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(40px,13vw,58px);margin-top:4px;line-height:1}
+.hero .sub{font-size:13px;opacity:.85;margin-top:8px}
+.hero .paidchip{position:absolute;top:18px;right:18px;background:rgba(255,255,255,.16);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:600}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px}
+.stat .n{font-family:'Fraunces',serif;font-weight:900;font-size:26px}
+.stat .l{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.stat.red .n{color:var(--red)} .stat.green .n{color:var(--green)}
+
+.searchbar{display:flex;gap:8px;margin:18px 0 8px}
+.searchbar input{flex:1;border:1px solid var(--line-strong);background:var(--paper);border-radius:14px;padding:13px 14px;font-size:15px;font-family:inherit;color:var(--ink)}
+.searchbar input:focus{outline:2px solid var(--green);outline-offset:1px}
+
+/* Tarjeta informativa de voz */
+.voice-banner{display:none;background:#FEF3C7;border:1px solid #F59E0B;border-radius:14px;padding:12px 14px;margin:12px 0;font-size:13px}
+.voice-banner.recording{display:flex;align-items:center;gap:10px}
+.voice-dot{width:10px;height:10px;background:#DC2626;border-radius:50%;animation:pulse-dot 1s infinite}
+@keyframes pulse-dot{0%{transform:scale(0.8);opacity:0.6}50%{transform:scale(1.2);opacity:1}100%{transform:scale(0.8);opacity:0.6}}
+
+.tabs-filtro{display:flex;gap:6px;margin:10px 0 6px}
+.tab-btn{border:1px solid var(--line-strong);background:var(--paper-2);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--ink-soft);cursor:pointer}
+.tab-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
+
+.sectionhead{display:flex;align-items:baseline;justify-content:space-between;margin:14px 0 8px}
+.sectionhead h2{font-size:19px}
+.sectionhead .link{background:none;border:0;color:var(--green);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit}
+
+.ledger{border-top:1px solid var(--line)}
+.row{display:flex;align-items:center;gap:12px;padding:14px 4px;border-bottom:1px solid var(--line);background:
+  repeating-linear-gradient(transparent,transparent 30px,rgba(214,64,47,.03) 31px);
+  cursor:pointer;width:100%;text-align:left;border-left:0;border-right:0;border-top:0;font-family:inherit}
+.row:active{background:var(--paper-2)}
+.avatar{width:44px;height:44px;border-radius:12px;background:var(--green);color:var(--paper);display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:900;font-size:18px;flex:0 0 auto}
+.row .who{flex:1;min-width:0}
+.row .who .nm{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .who .meta{font-size:12px;color:var(--ink-soft);margin-top:2px}
+.row .amt{text-align:right;flex:0 0 auto}
+.row .amt .v{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+.row .amt .v.debe{color:var(--red)} .row .amt .v.aldia{color:var(--green)}
+
+.temp{height:5px;border-radius:999px;background:var(--line-strong);margin-top:6px;overflow:hidden;width:64px;margin-left:auto}
+.temp span{display:block;height:100%}
+.t-verde span{background:var(--green)} .t-ambar span{background:var(--amber)} .t-rojo span{background:var(--red)}
+
+.empty{text-align:center;padding:46px 20px;color:var(--ink-soft)}
+.empty .em{font-size:40px}
+.empty h3{font-size:20px;color:var(--ink);margin:10px 0 4px}
+.empty p{font-size:14px;margin:0 0 18px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;padding:15px 18px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;width:100%}
+.btn-green{background:var(--green);color:var(--paper)}
+.btn-green:active{background:var(--green-deep)}
+.btn-wa{background:#1FA855;color:#fff}
+.btn-ghost{background:var(--paper);color:var(--ink);border:1px solid var(--line-strong)}
+.btn-red{background:var(--red);color:#fff}
+.btn-sm{padding:11px 14px;font-size:14px;width:auto}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.btnrow.three{grid-template-columns:1fr 1fr 1fr}
+
+/* Barra inferior unificada con Voz y Manual */
+.dock-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(250,247,240,0.96);backdrop-filter:blur(8px);border-top:1px solid var(--line-strong);padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:35}
+.dock-inner{max-width:520px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.voice-tips{font-size:11px;color:var(--ink-soft);line-height:1.3;flex:1}
+.voice-tips b{color:var(--ink);display:block}
+
+.mic-btn-main{width:56px;height:56px;border-radius:50%;background:var(--red);color:#fff;border:none;box-shadow:0 6px 18px rgba(198,58,42,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.1s}
+.mic-btn-main:active{transform:scale(0.92)}
+.mic-btn-main.pulse{animation:recording-pulse 1.3s infinite}
+@keyframes recording-pulse{
+  0%{box-shadow:0 0 0 0 rgba(198,58,42,0.7)}
+  70%{box-shadow:0 0 0 16px rgba(198,58,42,0)}
+  100%{box-shadow:0 0 0 0 rgba(198,58,42,0)}
+}
+
+.view{position:fixed;inset:0;background:var(--paper);z-index:40;overflow-y:auto;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.1,1);display:flex;flex-direction:column}
+.view.open{transform:none}
+.vhead{position:sticky;top:0;background:var(--green);color:var(--paper);padding:16px 18px;display:flex;align-items:center;gap:14px;z-index:2}
+.vhead .x{background:rgba(255,255,255,.16);border:0;color:var(--paper);width:38px;height:38px;border-radius:11px;font-size:20px;cursor:pointer}
+.vhead h2{font-size:19px}
+.vbody{padding:20px 18px 40px;max-width:520px;margin:0 auto;width:100%}
+
+label.f{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin:16px 0 6px}
+input.f,textarea.f,select.f{width:100%;border:1px solid var(--line-strong);background:var(--paper);border-radius:13px;padding:14px;font-size:16px;font-family:inherit;color:var(--ink)}
+input.f:focus,textarea.f:focus,select.f:focus{outline:2px solid var(--green);outline-offset:1px}
+.moneyin{font-family:'Fraunces',serif;font-weight:900;font-size:34px;text-align:center;letter-spacing:-.02em;padding:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{border:1px solid var(--line-strong);background:var(--paper);border-radius:999px;padding:9px 14px;font-size:14px;cursor:pointer;font-family:inherit;color:var(--ink)}
+.chip.on{background:var(--green);color:var(--paper);border-color:var(--green)}
+.chip.q{background:var(--paper-2)}
+
+.detail-saldo{text-align:center;padding:22px 0 6px}
+.detail-saldo .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.detail-saldo .v{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(38px,12vw,54px);margin-top:4px}
+.detail-saldo .v.debe{color:var(--red)} .detail-saldo .v.aldia{color:var(--green)}
+.phone-line{display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;color:var(--ink-soft);margin-top:4px}
+.phone-line button{background:none;border:0;color:var(--green);font-weight:600;cursor:pointer;font-family:inherit;font-size:13px}
+
+.mov{display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid var(--line)}
+.mov .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:16px;flex:0 0 auto}
+.mov .ic.f{background:rgba(198,58,42,.12);color:var(--red)}
+.mov .ic.a{background:rgba(11,93,59,.12);color:var(--green)}
+.mov .d{flex:1;min-width:0}
+.mov .d .t{font-weight:600;font-size:15px}
+.mov .d .s{font-size:12px;color:var(--ink-soft)}
+.mov .m{font-weight:700;font-variant-numeric:tabular-nums}
+.mov .m.f{color:var(--red)} .mov .m.a{color:var(--green)}
+
+.tag-fac{display:inline-block;font-size:11px;font-weight:600;padding:2px 6px;border-radius:6px;margin-left:4px;vertical-align:middle}
+.tag-fac.fiado{background:#F3EEE2;color:var(--ink);border:1px solid var(--line-strong)}
+.tag-fac.abono{background:#E8F5E9;color:var(--green);border:1px solid #C8E6C9}
+
+.notice{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;padding:14px;font-size:12.5px;color:var(--ink-soft);line-height:1.55;margin-top:14px}
+.notice b{color:var(--ink)}
+.consent{display:flex;gap:12px;align-items:flex-start;margin-top:16px;padding:14px;border:1px solid var(--line-strong);border-radius:14px;background:var(--paper)}
+.consent input{width:22px;height:22px;flex:0 0 auto;margin-top:2px;accent-color:var(--green)}
+.consent span{font-size:13px;line-height:1.5}
+.consent a{color:var(--green);font-weight:600}
+
+.toast{position:fixed;bottom:calc(95px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--paper);padding:13px 20px;border-radius:12px;font-size:14px;font-weight:500;z-index:80;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+.modal-bg{position:fixed;inset:0;background:rgba(27,36,48,.55);z-index:60;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:.25s}
+.modal-bg.open{opacity:1;pointer-events:auto}
+.modal{background:var(--paper);border-radius:22px 22px 0 0;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;padding:8px 20px 30px;transform:translateY(30px);transition:.28s}
+.modal-bg.open .modal{transform:none}
+.modal .grip{width:44px;height:5px;background:var(--line-strong);border-radius:999px;margin:8px auto 14px}
+.modal h2{font-size:22px;margin-bottom:10px}
+.modal p{font-size:14px;color:var(--ink-soft);line-height:1.6}
+.modal h4{font-family:'Fraunces',serif;font-size:15px;margin:16px 0 4px}
+
+footer.credit{text-align:center;padding:22px 18px;font-size:11px;color:var(--ink-soft);position:relative;z-index:1;border-top:1px solid var(--line);margin-top:10px}
+footer.credit b{color:var(--green);font-weight:600}
+</style>
 </head>
 <body>
-
-  <!-- Encabezado Principal -->
+<div class="wrap">
   <header>
-    <div class="header-content">
-      <div>
-        <h1 style="font-size: 19px; font-weight: 900; letter-spacing: -0.5px;">Fiado Fácil</h1>
-        <p style="font-size: 11px; opacity: 0.9;">Libreta por Voz & WhatsApp</p>
-      </div>
-      <button class="btn-manual-top" onclick="openManualModal()">+ Manual</button>
+    <div>
+      <div class="brand">Fiado</div>
+      <div class="tienda" id="hTienda">Mi tienda</div>
     </div>
+    <button class="gear" id="btnGear" aria-label="Ajustes">⚙︎</button>
+    <div class="clock" id="clock" aria-live="off"><b>--:--</b><span>Colombia</span></div>
   </header>
 
-  <!-- Cuerpo Principal -->
-  <main>
-    <!-- Resumen Total -->
-    <div class="summary-card">
-      <div class="summary-top">
-        <div>
-          <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85; font-weight: 700;">Total Fiado en la Calle</span>
-          <div class="total-amount" id="totalDebtDisplay">$ 0</div>
-        </div>
-        <div class="debtors-badge">
-          <span style="font-size: 10px; text-transform: uppercase; font-weight: 800; display: block; opacity: 0.85;">Clientes</span>
-          <span id="debtorsCountDisplay" style="font-size: 20px; font-weight: 900; color: #fde047;">0</span>
-        </div>
+  <main id="main"><!-- render dinámico --></main>
+
+  <!-- Barra Fija Inferior con Micrófono y Ayuda -->
+  <div class="dock-bar">
+    <div class="dock-inner">
+      <div class="voice-tips">
+        <b>🎤 Voz con Factura / Remisión:</b>
+        "Fío a Carlos 90 mil factura 104"
       </div>
-    </div>
-
-    <!-- Buscador -->
-    <div class="search-bar">
-      <input type="text" id="searchInput" oninput="renderDebtors()" placeholder="Buscar cliente por nombre...">
-    </div>
-
-    <!-- Estado de Voz Activo -->
-    <div id="voiceStatus" style="display:none; background: #fef3c7; border: 1px solid #f59e0b; padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; font-size: 13px;">
-      <strong style="color: #92400e;">Escuchando...</strong> <span id="voiceText">Diga ej: "Fío a Carlos noventa mil"</span>
-    </div>
-
-    <!-- Lista de Deudores -->
-    <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 8px;">Cuentas Pendientes</div>
-    <div id="debtorsList"></div>
-
-    <!-- Sin Deudores -->
-    <div id="emptyState" class="empty-state" style="display: none;">
-      <p style="font-size: 15px; font-weight: 800; color: #1e293b;">¡Al día! No hay cuentas pendientes</p>
-      <p style="font-size: 12px; color: #64748b; margin-top: 4px;">Toca el micrófono rojo abajo o '+ Manual' para anotar.</p>
-    </div>
-  </main>
-
-  <!-- Barra Inferior de Acción Rápida -->
-  <div class="bottom-bar">
-    <div class="bottom-inner">
-      <div style="font-size: 12px; color: #475569; line-height: 1.3;">
-        <strong style="color: #0f172a; display: block;">Comandos de voz:</strong>
-        "Fío a Carlos noventa mil" ó "Carlos abonó diez mil"
-      </div>
-      <button id="micBtn" class="mic-btn" onclick="toggleVoice()" title="Presiona para hablar">
+      <button class="btn btn-red btn-sm" onclick="abrirFiar()" style="width:auto;padding:12px 14px;">＋ Manual</button>
+      <button id="micBtn" class="mic-btn-main" onclick="toggleVoiceRecognition()" title="Presiona para hablar">
         <svg width="26" height="26" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
       </button>
     </div>
   </div>
 
-  <!-- Modal de Registro Manual -->
-  <div id="manualModal" class="modal-overlay">
-    <div class="modal-box">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="font-size: 16px; font-weight: 800;">Registrar Operación</h3>
-        <button onclick="closeManualModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #64748b; line-height: 1;">&times;</button>
-      </div>
-
-      <div class="type-selector">
-        <div id="typeFiado" class="type-btn selected-fiado" onclick="setType('fiado')">+ Fiar</div>
-        <div id="typeAbono" class="type-btn" onclick="setType('abono')">- Abono / Pago</div>
-      </div>
-
-      <form id="recordForm" onsubmit="saveManual(event)">
-        <div class="form-group">
-          <label>Nombre del Cliente</label>
-          <input type="text" id="clientNameInput" required placeholder="Ej. Carlos">
-        </div>
-        <div class="form-group">
-          <label>Monto ($ COP)</label>
-          <input type="number" id="amountInput" required step="100" min="100" placeholder="90000">
-        </div>
-        <div class="form-group">
-          <label>Detalle (Opcional)</label>
-          <input type="text" id="detailInput" placeholder="Ej. Abarrotes">
-        </div>
-        <button type="submit" class="btn-submit">Guardar en Libreta</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Créditos de Autoría -->
-  <footer style="text-align: center; font-size: 11px; color: #94a3b8; padding: 15px 0 25px;">
-    &copy; 2026 VIBRAS POSITIVAS HM. Todos los derechos reservados.
+  <footer class="credit">
+    Datos guardados solo en este dispositivo · Hora oficial de Colombia (UTC−5)<br>
+    Desarrollada por <b>VIBRAS POSITIVAS HM</b> — Derechos de Autor Reservados
   </footer>
+</div>
 
-  <script>
-    const STORAGE_KEY = 'fiado_facil_db';
-    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { clients: {} };
-    let currentType = 'fiado';
+<div id="viewLayer"></div>
+<div class="modal-bg" id="modalBg"><div class="modal" id="modalBox"></div></div>
+<div class="toast" id="toast"></div>
 
-    function saveDB() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-      renderDebtors();
-    }
+<script>
+"use strict";
+/* ============ Utilidades Colombia / Formato ============ */
+const COP = n => new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Math.round(n||0));
+const NUM = n => new Intl.NumberFormat('es-CO',{maximumFractionDigits:0}).format(Math.round(n||0));
+function nowCO(){
+  const s = new Date().toLocaleString('en-US',{timeZone:'America/Bogota'});
+  return new Date(s);
+}
+function isoCO(){ return nowCO().toISOString(); }
+function fechaCO(iso){
+  return new Date(iso).toLocaleDateString('es-CO',{timeZone:'America/Bogota',day:'2-digit',month:'short',year:'numeric'});
+}
+function diasDesde(iso){
+  const a=nowCO(); a.setHours(0,0,0,0);
+  const b=new Date(new Date(iso).toLocaleString('en-US',{timeZone:'America/Bogota'})); b.setHours(0,0,0,0);
+  return Math.max(0,Math.round((a-b)/86400000));
+}
+function esHoyCO(iso){
+  const d=new Date(iso).toLocaleDateString('en-CA',{timeZone:'America/Bogota'});
+  const h=nowCO().toLocaleDateString('en-CA',{timeZone:'America/Bogota'});
+  return d===h;
+}
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const initials = nm => (nm||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+const maskPhone = p => { p=(p||'').replace(/\D/g,''); return p? '••• ••• '+p.slice(-2) : 'Sin teléfono'; };
 
-    function formatCOP(val) {
-      return '$ ' + Number(val).toLocaleString('es-CO');
-    }
+/* ============ IndexedDB ============ */
+const DB_NAME='tendero_fiado', DB_VER=1;
+let db;
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,DB_VER);
+    r.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('clientes')) d.createObjectStore('clientes',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('movimientos')){const m=d.createObjectStore('movimientos',{keyPath:'id'});m.createIndex('cliente','clienteId',{unique:false});}
+      if(!d.objectStoreNames.contains('config')) d.createObjectStore('config',{keyPath:'k'});
+    };
+    r.onsuccess=e=>{db=e.target.result;res(db);};
+    r.onerror=e=>rej(e.target.error);
+  });
+}
+function tx(store,mode='readonly'){return db.transaction(store,mode).objectStore(store);}
+const put = (s,v)=>new Promise((res,rej)=>{const r=tx(s,'readwrite').put(v);r.onsuccess=()=>res(v);r.onerror=()=>rej(r.error);});
+const del = (s,k)=>new Promise((res,rej)=>{const r=tx(s,'readwrite').delete(k);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});
+const getAll = s=>new Promise((res,rej)=>{const r=tx(s).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);});
+const getOne = (s,k)=>new Promise((res,rej)=>{const r=tx(s).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
+const clearStore = s=>new Promise((res,rej)=>{const r=tx(s,'readwrite').clear();r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});
 
-    function setType(type) {
-      currentType = type;
-      if (type === 'fiado') {
-        document.getElementById('typeFiado').className = 'type-btn selected-fiado';
-        document.getElementById('typeAbono').className = 'type-btn';
-      } else {
-        document.getElementById('typeFiado').className = 'type-btn';
-        document.getElementById('typeAbono').className = 'type-btn selected-abono';
-      }
-    }
+/* ============ Estado en memoria ============ */
+let CLIENTES=[], MOVS=[], CFG={k:'cfg',tienda:'Mi tienda',tendero:'',plantilla:'', verTodos:false, verTelefono:false};
+let mostrarTodosFiltro = false;
 
-    function renderDebtors() {
-      const list = document.getElementById('debtorsList');
-      const search = document.getElementById('searchInput').value.toLowerCase().trim();
-      list.innerHTML = '';
+async function cargarTodo(){
+  CLIENTES = await getAll('clientes');
+  MOVS = await getAll('movimientos');
+  const c = await getOne('config','cfg');
+  if(c) CFG = Object.assign(CFG,c);
+  document.getElementById('hTienda').textContent = CFG.tienda||'Mi tienda';
+}
+async function guardarCfg(){ CFG.k='cfg'; await put('config',CFG); document.getElementById('hTienda').textContent=CFG.tienda||'Mi tienda'; }
 
-      let total = 0;
-      let count = 0;
+function saldoDe(id){
+  return MOVS.filter(m=>m.clienteId===id).reduce((s,m)=> s + (m.tipo==='fiado'? (+m.monto||0) : -(+m.monto||0)), 0);
+}
+function movsDe(id){ return MOVS.filter(m=>m.clienteId===id).sort((a,b)=> new Date(b.fecha)-new Date(a.fecha)); }
+function deudaMasVieja(id){
+  const fs = MOVS.filter(m=>m.clienteId===id && m.tipo==='fiado').sort((a,b)=> new Date(a.fecha)-new Date(b.fecha));
+  return fs.length? diasDesde(fs[0].fecha) : 0;
+}
+function tempClase(dias){ return dias>30?'t-rojo':dias>=15?'t-ambar':'t-verde'; }
+function tempPct(dias){ return Math.min(100, Math.max(14, Math.round(dias/45*100))); }
 
-      Object.keys(db.clients).forEach(name => {
-        const c = db.clients[name];
-        if (c.total > 0) {
-          total += c.total;
-          count++;
+/* ============ Render Principal ============ */
+const main=document.getElementById('main');
+let filtro='';
 
-          if (search && !name.toLowerCase().includes(search)) return;
+function render(){
+  const todosCalculados = CLIENTES.map(c=>({c,saldo:saldoDe(c.id),vieja:deudaMasVieja(c.id)}));
+  const conSaldo = todosCalculados.filter(x=>x.saldo>0.5);
+  const totalPorCobrar = conSaldo.reduce((s,x)=>s+x.saldo,0);
+  const cobradoHoy = MOVS.filter(m=>m.tipo==='abono'&&esHoyCO(m.fecha)).reduce((s,m)=>(+m.monto||0)+s,0);
+  const nDeudores = conSaldo.length;
+  const alDia = CLIENTES.length - conSaldo.length;
 
-          const card = document.createElement('div');
-          card.className = 'card-debtor';
-          card.innerHTML = `
-            <div>
-              <div class="debtor-name">${name}</div>
-              <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Saldo acumulado</div>
+  // Banner en vivo de voz
+  const bannerVoz = `
+    <div id="voiceBanner" class="voice-banner">
+      <div class="voice-dot"></div>
+      <div>
+        <strong id="voiceStatusTitle" style="color:#92400E;display:block;">Escuchando...</strong>
+        <span id="voiceTranscript" style="color:#1E293B;font-style:italic;">Diga: "Fío a Carlos 90 mil factura 104"</span>
+      </div>
+    </div>
+  `;
+
+  if(CLIENTES.length===0){
+    main.innerHTML = `
+      ${bannerVoz}
+      <div class="hero"><div class="lbl">Total por cobrar</div><div class="big money">${COP(0)}</div>
+        <div class="sub">Tu libreta de fiado digital empieza aquí.</div></div>
+      <div class="empty">
+        <div class="em">📓</div>
+        <h3>Aún no tienes fiados</h3>
+        <p>Registra por voz o con el botón manual.<br>Tus cuentas se respaldan seguras en este dispositivo.</p>
+        <button class="btn btn-green" onclick="abrirFiar()">＋ Registrar el primer fiado</button>
+        <div style="height:10px"></div>
+        <button class="btn btn-ghost" onclick="cargarEjemplo()">Ver con datos de ejemplo</button>
+      </div>`;
+    return;
+  }
+
+  let lista = [];
+  if(filtro){
+    const f=filtro.toLowerCase();
+    lista = todosCalculados.filter(x=>x.c.nombre.toLowerCase().includes(f)).sort((a,b)=>b.saldo-a.saldo);
+  } else if(mostrarTodosFiltro){
+    lista = todosCalculados.sort((a,b)=>b.saldo-a.saldo || a.c.nombre.localeCompare(b.c.nombre));
+  } else {
+    lista = conSaldo.sort((a,b)=>b.saldo-a.saldo);
+  }
+
+  main.innerHTML = `
+    ${bannerVoz}
+    <div class="hero">
+      ${cobradoHoy>0?`<div class="paidchip">Hoy cobraste ${COP(cobradoHoy)}</div>`:''}
+      <div class="lbl">Total por cobrar</div>
+      <div class="big money">${COP(totalPorCobrar)}</div>
+      <div class="sub">${nDeudores} ${nDeudores===1?'persona te debe':'personas te deben'}${alDia>0?` · ${alDia} al día`:''}</div>
+    </div>
+    <div class="stats">
+      <div class="stat red"><div class="n money">${nDeudores}</div><div class="l">Deben plata</div></div>
+      <div class="stat green"><div class="n money">${COP(cobradoHoy)}</div><div class="l">Cobrado hoy</div></div>
+    </div>
+    <div class="searchbar">
+      <input id="q" placeholder="Buscar cliente por nombre…" value="${filtro.replace(/"/g,'&quot;')}" inputmode="search">
+    </div>
+
+    <div class="tabs-filtro">
+      <button class="tab-btn ${!mostrarTodosFiltro && !filtro ? 'active' : ''}" onclick="cambiarFiltroVista(false)">Solo deudores (${nDeudores})</button>
+      <button class="tab-btn ${mostrarTodosFiltro && !filtro ? 'active' : ''}" onclick="cambiarFiltroVista(true)">Todos (${CLIENTES.length})</button>
+    </div>
+
+    <div class="sectionhead">
+      <h2>${filtro?'Resultados':(mostrarTodosFiltro?'Todos los clientes':'Cuentas por cobrar')}</h2>
+      <button class="link" onclick="abrirNuevoCliente()">＋ Cliente</button>
+    </div>
+    <div class="ledger" id="ledger">
+      ${lista.length? lista.map(rowHTML).join('') :
+        `<div class="empty"><div class="em">✅</div><h3>${filtro?'Sin resultados':'¡Nadie te debe!'}</h3><p>${filtro?'Prueba con otro nombre.':'Todos los clientes están al día.'}</p></div>`}
+    </div>`;
+
+  const q=document.getElementById('q');
+  if(q){ q.oninput=e=>{filtro=e.target.value; const pos=e.target.selectionStart; render(); const nq=document.getElementById('q'); if(nq){nq.focus();nq.setSelectionRange(pos,pos);} }; }
+}
+
+function cambiarFiltroVista(todos){
+  mostrarTodosFiltro = todos;
+  filtro = '';
+  render();
+}
+
+function rowHTML({c,saldo,vieja}){
+  const debe = saldo>0.5;
+  const tc=tempClase(vieja), tp=tempPct(vieja);
+  const metaTxt = debe? (vieja===0?'Hoy':`Hace ${vieja} día${vieja===1?'':'s'}`) : 'Al día';
+  return `<button class="row" onclick="abrirCliente('${c.id}')">
+    <div class="avatar">${initials(c.nombre)}</div>
+    <div class="who"><div class="nm">${esc(c.nombre)}</div><div class="meta">${metaTxt}</div></div>
+    <div class="amt">
+      <div class="v ${debe?'debe':'aldia'} money">${debe?COP(saldo):'Al día'}</div>
+      ${debe?`<div class="temp ${tc}"><span style="width:${tp}%"></span></div>`:''}
+    </div>
+  </button>`;
+}
+function esc(s){return (s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+
+/* ============ Vistas ============ */
+const viewLayer=document.getElementById('viewLayer');
+function openView(html){
+  const el=document.createElement('div'); el.className='view'; el.innerHTML=html;
+  viewLayer.appendChild(el); requestAnimationFrame(()=>el.classList.add('open'));
+  return el;
+}
+function closeView(el){ el.classList.remove('open'); setTimeout(()=>el.remove(),300); }
+
+/* ---- Detalle de cliente ---- */
+function abrirCliente(id){
+  const c=CLIENTES.find(x=>x.id===id); if(!c)return;
+  const saldo=saldoDe(id), debe=saldo>0.5, ms=movsDe(id);
+  const el=openView(`
+    <div class="vhead"><button class="x">‹</button><h2>${esc(c.nombre)}</h2></div>
+    <div class="vbody">
+      <div class="detail-saldo">
+        <div class="lbl">${debe?'Debe':'Saldo'}</div>
+        <div class="v ${debe?'debe':'aldia'} money">${debe?COP(saldo):'Al día ($0)'}</div>
+        <div class="phone-line">
+          <span id="phTxt">${CFG.verTelefono? (c.telefono||'Sin teléfono') : maskPhone(c.telefono)}</span>
+          ${c.telefono?`<button id="phToggle">${CFG.verTelefono?'ocultar':'ver'}</button>`:''}
+        </div>
+      </div>
+      <div class="btnrow three">
+        <button class="btn btn-red btn-sm" id="bFiar">＋ Fiar</button>
+        <button class="btn btn-green btn-sm" id="bAbono">Abono</button>
+        <button class="btn btn-wa btn-sm" id="bWa">WhatsApp</button>
+      </div>
+      <div class="sectionhead"><h2 style="font-size:16px">Historial de Operaciones</h2></div>
+      <div class="ledger">
+        ${ms.length? ms.map(m=>`
+          <div class="mov">
+            <div class="ic ${m.tipo==='fiado'?'f':'a'}">${m.tipo==='fiado'?'−':'✓'}</div>
+            <div class="d">
+              <div class="t">
+                ${m.tipo==='fiado'
+                  ? ('Fiado' + (m.factura ? ` <span class="tag-fac fiado">Fact. #${esc(m.factura)}</span>` : '') + (m.descripcion ? ' · ' + esc(m.descripcion) : ''))
+                  : ('Abono' + (m.factura ? ` <span class="tag-fac abono">A Fact. #${esc(m.factura)}</span>` : '') + (m.descripcion ? ' · ' + esc(m.descripcion) : ''))}
+              </div>
+              <div class="s">${fechaCO(m.fecha)}</div>
             </div>
-            <div style="text-align: right;">
-              <div class="debtor-balance">${formatCOP(c.total)}</div>
-              <button class="btn-pay" onclick="payAll('${encodeURIComponent(name)}')">✓ Ya pagó</button>
-            </div>
-          `;
-          list.appendChild(card);
-        }
-      });
+            <div class="m ${m.tipo==='fiado'?'f':'a'} money">${m.tipo==='fiado'?'+':'−'}${COP(m.monto)}</div>
+          </div>`).join('')
+        : '<div class="empty" style="padding:26px"><p>Sin movimientos todavía.</p></div>'}
+      </div>
+      <div style="height:16px"></div>
+      <button class="btn btn-ghost" id="bDel" style="color:var(--red)">Eliminar cliente</button>
+    </div>`);
+  el.querySelector('.x').onclick=()=>closeView(el);
+  el.querySelector('#bFiar').onclick=()=>abrirFiar(id);
+  el.querySelector('#bAbono').onclick=()=>abrirAbono(id);
+  el.querySelector('#bWa').onclick=()=>enviarWhatsAppCliente(c,saldoDe(id));
+  const pt=el.querySelector('#phToggle'); if(pt) pt.onclick=()=>{CFG.verTelefono=!CFG.verTelefono; guardarCfg(); el.querySelector('#phTxt').textContent=CFG.verTelefono?(c.telefono||'Sin teléfono'):maskPhone(c.telefono); pt.textContent=CFG.verTelefono?'ocultar':'ver';};
+  el.querySelector('#bDel').onclick=async()=>{
+    if(!confirm('¿Eliminar a '+c.nombre+' y todo su historial? Esta acción no se puede deshacer.'))return;
+    await del('clientes',id);
+    for(const m of MOVS.filter(x=>x.clienteId===id)) await del('movimientos',m.id);
+    await cargarTodo(); render(); closeView(el); toast('Cliente eliminado');
+  };
+}
 
-      document.getElementById('totalDebtDisplay').innerText = formatCOP(total);
-      document.getElementById('debtorsCountDisplay').innerText = count;
-      document.getElementById('emptyState').style.display = (count === 0) ? 'block' : 'none';
-    }
+/* ---- Registrar fiado manual ---- */
+function abrirFiar(clienteId){
+  const opciones = CLIENTES.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  const el=openView(`
+    <div class="vhead"><button class="x">‹</button><h2>Registrar fiado</h2></div>
+    <div class="vbody">
+      <label class="f">¿A quién le fías?</label>
+      <select class="f" id="selCli">
+        <option value="">— Elegir cliente —</option>
+        ${opciones.map(c=>`<option value="${c.id}" ${c.id===clienteId?'selected':''}>${esc(c.nombre)}</option>`).join('')}
+        <option value="__new">＋ Cliente nuevo…</option>
+      </select>
+      <label class="f">Monto del fiado ($ COP)</label>
+      <input class="f moneyin" id="monto" inputmode="numeric" placeholder="$0" autocomplete="off">
+      <label class="f">Nº Factura / Remisión (opcional)</label>
+      <input class="f" id="factura" placeholder="Ej: 104, F-1045, Rem 88…" autocomplete="off">
+      <label class="f">¿Qué se llevó? (opcional)</label>
+      <input class="f" id="desc" placeholder="Ej: mercado, gaseosa…" autocomplete="off">
+      <div class="chips" id="chips">
+        ${['Mercado','Gaseosa','Cerveza','Pan','Cigarrillos','Recarga','Huevos','Arroz'].map(t=>`<button class="chip" data-t="${t}">${t}</button>`).join('')}
+      </div>
+      <div style="height:26px"></div>
+      <button class="btn btn-red" id="guardar">Guardar fiado</button>
+    </div>`);
+  el.querySelector('.x').onclick=()=>closeView(el);
+  const monto=el.querySelector('#monto');
+  monto.oninput=()=>{const raw=monto.value.replace(/\D/g,''); monto.value=raw?('$'+NUM(+raw)):'';};
+  el.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{el.querySelector('#desc').value=ch.dataset.t;el.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));ch.classList.add('on');});
+  const sel=el.querySelector('#selCli');
+  sel.onchange=()=>{ if(sel.value==='__new'){ closeView(el); abrirNuevoCliente(); } };
+  el.querySelector('#guardar').onclick=async()=>{
+    const cid=sel.value; const val=+monto.value.replace(/\D/g,'');
+    if(!cid||cid==='__new') return toast('Elige un cliente');
+    if(!val||val<=0) return toast('Escribe el monto');
+    await put('movimientos',{
+      id: uid(),
+      clienteId: cid,
+      tipo: 'fiado',
+      monto: val,
+      factura: el.querySelector('#factura').value.trim(),
+      descripcion: el.querySelector('#desc').value.trim(),
+      fecha: isoCO(),
+      creado: isoCO()
+    });
+    await cargarTodo(); render(); closeView(el); toast('Fiado registrado ✔');
+  };
+  if(!clienteId) setTimeout(()=>sel.focus(),350); else setTimeout(()=>monto.focus(),350);
+}
 
-    function openManualModal() {
-      document.getElementById('manualModal').classList.add('active');
-    }
-    function closeManualModal() {
-      document.getElementById('manualModal').classList.remove('active');
-    }
+/* ---- Registrar abono manual ---- */
+function abrirAbono(clienteId){
+  const c=CLIENTES.find(x=>x.id===clienteId);
+  const saldoActual=saldoDe(clienteId);
 
-    function saveManual(e) {
-      e.preventDefault();
-      const name = document.getElementById('clientNameInput').value.trim();
-      const amount = parseInt(document.getElementById('amountInput').value, 10);
-      const detail = document.getElementById('detailInput').value.trim() || 'Manual';
+  const facturasCliente = [...new Set(
+    MOVS.filter(m=>m.clienteId===clienteId && m.tipo==='fiado' && m.factura)
+        .map(m=>m.factura.trim())
+        .filter(Boolean)
+  )];
 
-      if (!name || isNaN(amount) || amount <= 0) return;
+  const el=openView(`
+    <div class="vhead"><button class="x">‹</button><h2>Registrar abono</h2></div>
+    <div class="vbody">
+      <div class="detail-saldo"><div class="lbl">${esc(c.nombre)} debe</div><div class="v debe money">${COP(saldoActual)}</div></div>
+      
+      <label class="f">¿A qué factura abona? (opcional)</label>
+      ${facturasCliente.length ? `
+        <select class="f" id="selFactura" style="margin-bottom:8px">
+          <option value="">— Elegir factura —</option>
+          ${facturasCliente.map(f=>`<option value="${esc(f)}">Factura: #${esc(f)}</option>`).join('')}
+          <option value="__otra">✏️ Escribir otra factura...</option>
+        </select>
+      ` : ''}
+      <input class="f" id="facturaAbono" placeholder="Ej: 104, F-1045, Rem 88…" autocomplete="off" style="${facturasCliente.length ? 'display:none;' : ''}">
 
-      register(name, amount, currentType, detail);
-      closeManualModal();
-      e.target.reset();
-    }
+      <label class="f">¿Cuánto abonó? ($ COP)</label>
+      <input class="f moneyin" id="monto" inputmode="numeric" placeholder="$0" autocomplete="off">
+      <div class="chips">
+        <button class="chip q" id="btnPagarTodo">Pagó todo (${COP(saldoActual)})</button>
+      </div>
+      <div style="height:26px"></div>
+      <button class="btn btn-green" id="guardar">Guardar abono</button>
+    </div>`);
+  el.querySelector('.x').onclick=()=>closeView(el);
 
-    function payAll(encodedName) {
-      const name = decodeURIComponent(encodedName);
-      if (confirm(`¿Marcar la cuenta de ${name} como totalmente pagada?`)) {
-        if (db.clients[name]) {
-          db.clients[name].total = 0;
-          saveDB();
-        }
-      }
-    }
-
-    function register(name, amount, type, detail) {
-      if (!db.clients[name]) {
-        db.clients[name] = { total: 0, history: [] };
-      }
-      if (type === 'fiado') {
-        db.clients[name].total += amount;
+  const selFac = el.querySelector('#selFactura');
+  const inpFac = el.querySelector('#facturaAbono');
+  if(selFac){
+    selFac.onchange=()=>{
+      if(selFac.value === '__otra'){
+        inpFac.style.display = 'block';
+        inpFac.value = '';
+        inpFac.focus();
       } else {
-        db.clients[name].total = Math.max(0, db.clients[name].total - amount);
+        inpFac.style.display = 'none';
+        inpFac.value = selFac.value;
       }
-      db.clients[name].history.push({ type, amount, detail, date: new Date().toLocaleString() });
-      saveDB();
+    };
+  }
+
+  const monto=el.querySelector('#monto');
+  monto.oninput=()=>{const raw=monto.value.replace(/\D/g,''); monto.value=raw?('$'+NUM(+raw)):'';};
+  el.querySelector('#btnPagarTodo').onclick=()=>{monto.value='$'+NUM(saldoActual);};
+
+  el.querySelector('#guardar').onclick=async()=>{
+    const val=+monto.value.replace(/\D/g,'');
+    if(!val||val<=0) return toast('Escribe el monto');
+    const facFinal = inpFac ? inpFac.value.trim() : (selFac ? selFac.value.trim() : '');
+
+    await put('movimientos',{
+      id: uid(),
+      clienteId,
+      tipo: 'abono',
+      monto: val,
+      factura: facFinal,
+      descripcion: '',
+      fecha: isoCO(),
+      creado: isoCO()
+    });
+
+    await cargarTodo();
+    render();
+    closeView(el);
+    abrirConfirmacionAbono(c, saldoDe(clienteId), val, facFinal);
+  };
+  setTimeout(()=>monto.focus(),350);
+}
+
+function abrirConfirmacionAbono(c, nuevoSaldo, valorAbonado, facturaAbonada){
+  const pazYSalvo = nuevoSaldo <= 0.5;
+  const el = openView(`
+    <div class="vhead"><button class="x">✕</button><h2>Abono registrado</h2></div>
+    <div class="vbody" style="text-align:center">
+      <div style="font-size:48px;margin:20px 0 10px">${pazYSalvo ? '🎉' : '✅'}</div>
+      <h3 style="font-size:24px;margin-bottom:6px">${pazYSalvo ? '¡Cuenta al día!' : '¡Abono guardado!'}</h3>
+      <p style="color:var(--ink-soft);margin-bottom:20px">Se abonó ${COP(valorAbonado)}${facturaAbonada ? ' a la factura #' + esc(facturaAbonada) : ''}</p>
+      
+      <div class="detail-saldo" style="background:var(--paper-2);border-radius:18px;padding:20px;border:1px solid var(--line)">
+        <div class="lbl">Nuevo saldo de ${esc(c.nombre)}</div>
+        <div class="v ${pazYSalvo ? 'aldia' : 'debe'} money">${pazYSalvo ? 'Al día ($0)' : COP(nuevoSaldo)}</div>
+      </div>
+
+      <div style="height:24px"></div>
+      <button class="btn btn-wa" id="bWaDirecto">📱 Enviar comprobante por WhatsApp</button>
+      <div style="height:10px"></div>
+      <button class="btn btn-ghost" id="bVolver">Volver al cuaderno</button>
+    </div>
+  `);
+
+  el.querySelector('.x').onclick = ()=> closeView(el);
+  el.querySelector('#bVolver').onclick = ()=> closeView(el);
+  el.querySelector('#bWaDirecto').onclick = ()=>{
+    closeView(el);
+    enviarWhatsAppCliente(c, nuevoSaldo);
+  };
+}
+
+function abrirNuevoCliente(){
+  const el=openView(`
+    <div class="vhead"><button class="x">‹</button><h2>Nuevo cliente</h2></div>
+    <div class="vbody">
+      <label class="f">Nombre *</label>
+      <input class="f" id="nombre" placeholder="Ej: Don José Pérez" autocomplete="off">
+      <label class="f">Teléfono (para WhatsApp)</label>
+      <input class="f" id="tel" inputmode="tel" placeholder="Ej: 300 123 4567" autocomplete="off">
+      <div class="consent">
+        <input type="checkbox" id="consent">
+        <span>El cliente autoriza guardar sus datos para gestionar sus cobros (Ley 1581 de 2012).</span>
+      </div>
+      <div class="notice">Los datos se guardan <b>solo en este dispositivo</b> de forma privada.</div>
+      <div style="height:22px"></div>
+      <button class="btn btn-green" id="guardar">Guardar cliente</button>
+    </div>`);
+  el.querySelector('.x').onclick=()=>closeView(el);
+  el.querySelector('#guardar').onclick=async()=>{
+    const nombre=el.querySelector('#nombre').value.trim();
+    const tel=el.querySelector('#tel').value.trim();
+    if(!nombre) return toast('Escribe el nombre');
+    if(tel && !el.querySelector('#consent').checked) return toast('Marca la autorización de datos');
+    const c={id:uid(),nombre,telefono:tel,consentimiento:el.querySelector('#consent').checked,fechaConsentimiento:tel?isoCO():null,creado:isoCO()};
+    await put('clientes',c); await cargarTodo(); render(); closeView(el); toast('Cliente guardado ✔');
+    setTimeout(()=>abrirCliente(c.id),150);
+  };
+  setTimeout(()=>el.querySelector('#nombre').focus(),350);
+}
+
+/* ============================================================
+   MOTOR DE VOZ AVANZADO: MONTO + NOMBRE + NÚMERO DE FACTURA
+   ============================================================ */
+function wordsToNumber(text) {
+  const lower = text.toLowerCase().replace(/[,.]/g, ' ').replace(/fío/g, 'fio').replace(/\$/g, '');
+  const mixedMatch = lower.match(/(\d+)\s*(mil|k)/i);
+  if (mixedMatch) return parseInt(mixedMatch[1], 10) * 1000;
+
+  const units = {
+    'un': 1, 'uno': 1, 'una': 1, 'dos': 2, 'tres': 3, 'cuatro': 4,
+    'cinco': 5, 'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9,
+    'diez': 10, 'once': 11, 'doce': 12, 'trece': 13, 'catorce': 14,
+    'quince': 15, 'dieciseis': 16, 'dieciséis': 16, 'diecisiete': 17,
+    'dieciocho': 18, 'diecinueve': 19, 'veinte': 20, 'veintiuno': 21,
+    'veintidos': 22, 'veintidós': 22, 'veintitres': 23, 'veintitrés': 23,
+    'veinticuatro': 24, 'veinticinco': 25, 'veintiseis': 26, 'veintiséis': 26,
+    'veintisiete': 27, 'veintiocho': 28, 'veintinueve': 29, 'treinta': 30,
+    'cuarenta': 40, 'cincuenta': 50, 'sesenta': 60, 'setenta': 70,
+    'ochenta': 80, 'noventa': 90, 'cien': 100, 'ciento': 100,
+    'doscientos': 200, 'trescientos': 300, 'cuatrocientos': 400,
+    'quinientos': 500, 'seiscientos': 600, 'setecientos': 700,
+    'ochocientos': 800, 'novecientos': 900
+  };
+
+  const tokens = lower.split(/\s+/);
+  let total = 0, current = 0, foundNumber = false;
+
+  for (let i = 0; i < tokens.length; i++) {
+    let token = tokens[i];
+    if (/^\d+$/.test(token)) {
+      current += parseInt(token, 10);
+      foundNumber = true;
+      continue;
     }
-
-    // Convertidor de números hablados en Colombia (ej: noventa mil, 90 mil, 90000)
-    function wordsToNumber(text) {
-      const lower = text.toLowerCase()
-        .replace(/[,.]/g, ' ')
-        .replace(/fío/g, 'fio')
-        .replace(/\$/g, '');
-
-      // Regex prioritario para mezclas como "90 mil" o "90mil"
-      const mixedMatch = lower.match(/(\d+)\s*(mil|k)/i);
-      if (mixedMatch) {
-        return parseInt(mixedMatch[1], 10) * 1000;
-      }
-
-      const units = {
-        'un': 1, 'uno': 1, 'una': 1, 'dos': 2, 'tres': 3, 'cuatro': 4,
-        'cinco': 5, 'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9,
-        'diez': 10, 'once': 11, 'doce': 12, 'trece': 13, 'catorce': 14,
-        'quince': 15, 'dieciseis': 16, 'dieciséis': 16, 'diecisiete': 17,
-        'dieciocho': 18, 'diecinueve': 19, 'veinte': 20, 'veintiuno': 21,
-        'veintidos': 22, 'veintidós': 22, 'veintitres': 23, 'veintitrés': 23,
-        'veinticuatro': 24, 'veinticinco': 25, 'veintiseis': 26, 'veintiséis': 26,
-        'veintisiete': 27, 'veintiocho': 28, 'veintinueve': 29, 'treinta': 30,
-        'cuarenta': 40, 'cincuenta': 50, 'sesenta': 60, 'setenta': 70,
-        'ochenta': 80, 'noventa': 90, 'cien': 100, 'ciento': 100,
-        'doscientos': 200, 'trescientos': 300, 'cuatrocientos': 400,
-        'quinientos': 500, 'seiscientos': 600, 'setecientos': 700,
-        'ochocientos': 800, 'novecientos': 900
-      };
-
-      const tokens = lower.split(/\s+/);
-      let total = 0;
-      let current = 0;
-      let foundNumber = false;
-
-      for (let i = 0; i < tokens.length; i++) {
-        let token = tokens[i];
-
-        if (/^\d+$/.test(token)) {
-          current += parseInt(token, 10);
-          foundNumber = true;
-          continue;
-        }
-
-        if (units[token] !== undefined) {
-          current += units[token];
-          foundNumber = true;
-        } else if (token === 'mil') {
-          foundNumber = true;
-          if (current === 0) current = 1;
-          total += current * 1000;
-          current = 0;
-        } else if (token === 'millon' || token === 'millones') {
-          foundNumber = true;
-          if (current === 0) current = 1;
-          total += current * 1000000;
-          current = 0;
-        }
-      }
-
-      total += current;
-      return foundNumber ? total : null;
+    if (units[token] !== undefined) {
+      current += units[token];
+      foundNumber = true;
+    } else if (token === 'mil') {
+      foundNumber = true;
+      if (current === 0) current = 1;
+      total += current * 1000;
+      current = 0;
+    } else if (token === 'millon' || token === 'millones') {
+      foundNumber = true;
+      if (current === 0) current = 1;
+      total += current * 1000000;
+      current = 0;
     }
+  }
+  total += current;
+  return foundNumber ? total : null;
+}
 
-    function parseVoice(text) {
-      let raw = text.toLowerCase().trim();
+async function procesarComandoVoz(frase) {
+  let raw = frase.toLowerCase().trim();
 
-      // 1. Detectar si es abono o fiado
-      const isAbono = /abono|abonó|pago|pagó|dio|abona/i.test(raw);
+  // 1. Detección de Acción: Abono o Fiado
+  const isAbono = /abono|abonó|abona|pago|pagó|dio|cancelo|canceló/i.test(raw);
 
-      // 2. Extraer monto
-      let amount = wordsToNumber(raw);
+  // 2. Extracción de Número de Factura o Remisión
+  let factura = '';
+  const facMatch = raw.match(/(?:factura|remision|remisión|cuenta|fac|rem)\s*(?:numero|número|no\.?|#)?\s*([a-zA-Z0-9\-]+)/i);
+  if (facMatch) {
+    factura = facMatch[1].toUpperCase();
+    // Remover la sección de factura para no confundir con el monto
+    raw = raw.replace(facMatch[0], ' ');
+  }
 
-      if (!amount || amount < 100) {
-        const digits = raw.match(/\b\d{3,7}\b/g);
-        if (digits) {
-          amount = parseInt(digits[digits.length - 1], 10);
-        }
-      }
+  // 3. Extracción del Monto
+  let amount = wordsToNumber(raw);
+  if (!amount || amount < 100) {
+    const digits = raw.match(/\b\d{3,7}\b/g);
+    if (digits) amount = parseInt(digits[digits.length - 1], 10);
+  }
+  if (amount && amount < 1000 && (raw.includes('mil') || raw.includes('k') || amount <= 100)) {
+    amount = amount * 1000;
+  }
 
-      // Si detecta un valor pequeño como "90", en comercio barrial son 90 mil
-      if (amount && amount < 1000 && (raw.includes('mil') || raw.includes('k') || amount <= 100)) {
-        amount = amount * 1000;
-      }
+  if (!amount || amount <= 0) {
+    alert(`Se escuchó: "${frase}", pero no se reconoció el valor en dinero.\n\nEjemplo: "Fío a Carlos 90 mil factura 104"`);
+    return;
+  }
 
-      if (!amount || amount <= 0) {
-        alert(`Se escuchó: "${text}", pero no se reconoció un valor claro. Prueba diciendo: "Fío a Carlos noventa mil"`);
-        return;
-      }
+  // 4. Extracción y Limpieza del Nombre del Cliente
+  let cleaned = raw
+    .replace(/^(fio|fío|tio|tío|fiar|apunte|apúntele|anote|anótele)\s+(a\s+)?/gi, '')
+    .replace(/^(abono|abonó|abona|pago|pagó)\s+(a\s+)?/gi, '')
+    .replace(/(\bme\s+(dio|pago|pagó)\b)/gi, '')
+    .replace(/\b(a la|de la|con)\b/gi, '')
+    .replace(/\b(pesos|mil|millones|dolares|cop)\b/gi, '')
+    .replace(/\b(noventa|ochenta|setenta|sesenta|cincuenta|cuarenta|treinta|veinte|diez|quince|cien)\b/gi, '')
+    .replace(/\b\d+\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-      // 3. Limpiar el nombre del cliente (eliminar "fío a", "tío a", números, etc.)
-      let client = raw
-        .replace(/^(fio|fío|tio|tío|fiar|apunte|apúntele|anote|anótele)\s+(a\s+)?/gi, '')
-        .replace(/^(abono|abonó|abona|pago|pagó)\s+(a\s+)?/gi, '')
-        .replace(/(\bme\s+(dio|pago|pagó)\b)/gi, '')
-        .replace(/\b(pesos|mil|millones|dolares|cop)\b/gi, '')
-        .replace(/\b(noventa|ochenta|setenta|sesenta|cincuenta|cuarenta|treinta|veinte|diez|quince|cien)\b/gi, '')
-        .replace(/\b\d+\b/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+  let nombreCliente = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  if (!nombreCliente || nombreCliente.length < 2) nombreCliente = "Cliente Mostrador";
 
-      client = client.charAt(0).toUpperCase() + client.slice(1);
-      if (!client || client.length < 2) {
-        client = "Carlos";
-      }
+  // 5. Vincular o Crear Cliente en IndexedDB
+  let clienteExistente = CLIENTES.find(c => c.nombre.toLowerCase().trim() === nombreCliente.toLowerCase().trim());
+  if (!clienteExistente) {
+    // Si no coincide exacto, buscar si incluye parte del nombre
+    clienteExistente = CLIENTES.find(c => c.nombre.toLowerCase().includes(nombreCliente.toLowerCase()));
+  }
 
-      register(client, amount, isAbono ? 'abono' : 'fiado', `Voz: "${text}"`);
+  let cid;
+  if (!clienteExistente) {
+    cid = uid();
+    await put('clientes', {
+      id: cid,
+      nombre: nombreCliente,
+      telefono: '',
+      consentimiento: false,
+      fechaConsentimiento: null,
+      creado: isoCO()
+    });
+  } else {
+    cid = clienteExistente.id;
+    nombreCliente = clienteExistente.nombre;
+  }
+
+  // 6. Guardar Movimiento en Base de Datos
+  await put('movimientos', {
+    id: uid(),
+    clienteId: cid,
+    tipo: isAbono ? 'abono' : 'fiado',
+    monto: amount,
+    factura: factura,
+    descripcion: isAbono ? 'Abono por voz' : 'Fiado por voz',
+    fecha: isoCO(),
+    creado: isoCO()
+  });
+
+  await cargarTodo();
+  render();
+  toast(`${isAbono ? 'Abono' : 'Fiado'} de ${COP(amount)} guardado a ${nombreCliente} ${factura ? '(Fact. #'+factura+')' : ''} ✔`);
+}
+
+/* ---- Web Speech API Controller ---- */
+let recognition = null;
+let isListening = false;
+
+function toggleVoiceRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Tu navegador no soporta reconocimiento de voz. Usa el botón '＋ Manual'.");
+    return;
+  }
+
+  const micBtn = document.getElementById('micBtn');
+  const banner = document.getElementById('voiceBanner');
+  const transcript = document.getElementById('voiceTranscript');
+  const title = document.getElementById('voiceStatusTitle');
+
+  if (isListening) {
+    recognition.stop();
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'es-CO';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    isListening = true;
+    micBtn.classList.add('pulse');
+    if (banner) {
+      banner.className = 'voice-banner recording';
+      title.innerText = 'Escuchando... hable ahora';
+      transcript.innerText = 'Diga ej: "Fío a Carlos 90 mil factura 104"';
     }
+  };
 
-    // Manejo de la Web Speech API
-    let recognition = null;
-    let isListening = false;
+  recognition.onresult = (e) => {
+    const text = Array.from(e.results).map(r => r[0].transcript).join('');
+    if (transcript) transcript.innerText = `"${text}"`;
+  };
 
-    function toggleVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        alert("Tu navegador no soporta reconocimiento de voz. Usa el botón '+ Manual'.");
-        return;
-      }
-
-      const micBtn = document.getElementById('micBtn');
-      const statusBox = document.getElementById('voiceStatus');
-      const voiceText = document.getElementById('voiceText');
-
-      if (isListening) {
-        recognition.stop();
-        return;
-      }
-
-      recognition = new SpeechRecognition();
-      recognition.lang = 'es-CO';
-      recognition.continuous = false;
-
-      recognition.onstart = () => {
-        isListening = true;
-        micBtn.classList.add('recording-active');
-        statusBox.style.display = 'block';
-        voiceText.innerText = 'Escuchando... hable ahora';
-      };
-
-      recognition.onresult = (e) => {
-        const text = e.results[0][0].transcript;
-        voiceText.innerText = `"${text}"`;
-        parseVoice(text);
-      };
-
-      recognition.onend = () => {
-        isListening = false;
-        micBtn.classList.remove('recording-active');
-        setTimeout(() => { statusBox.style.display = 'none'; }, 2000);
-      };
-
-      recognition.onerror = () => {
-        isListening = false;
-        micBtn.classList.remove('recording-active');
-        statusBox.style.display = 'none';
-      };
-
-      recognition.start();
+  recognition.onend = () => {
+    isListening = false;
+    micBtn.classList.remove('pulse');
+    const finalSpoken = transcript ? transcript.innerText.replace(/"/g, '').trim() : '';
+    if (banner) {
+      setTimeout(() => { banner.className = 'voice-banner'; }, 2200);
     }
+    if (finalSpoken && !finalSpoken.includes('Diga ej:')) {
+      procesarComandoVoz(finalSpoken);
+    }
+  };
 
-    window.onload = renderDebtors;
-  </script>
+  recognition.onerror = (e) => {
+    isListening = false;
+    micBtn.classList.remove('pulse');
+    if (banner) banner.className = 'voice-banner';
+    console.error("Error en reconocimiento de voz:", e.error);
+  };
+
+  recognition.start();
+}
+
+/* ============================================================
+   WHATSAPP & COMPROBANTES CON HISTORIAL DETALLADO
+   ============================================================ */
+function mensajeDefault(nombre, saldo, cId){
+  const t = CFG.tienda || 'la tienda';
+  const firma = CFG.tendero ? ('\n\n— ' + CFG.tendero) : '';
+  const alDia = saldo <= 0.5;
+  const ms = movsDe(cId).slice().reverse();
+  let detalleTxt = '';
+
+  if(ms.length > 0){
+    detalleTxt = '\n\n*Detalle de movimientos:*';
+    ms.forEach(m => {
+      const fecha = fechaCO(m.fecha);
+      if(m.tipo === 'fiado'){
+        const fac = m.factura ? ` (Fact: #${m.factura})` : '';
+        const desc = m.descripcion ? ` · ${m.descripcion}` : '';
+        detalleTxt += `\n➕ ${fecha} Fiado: ${COP(m.monto)}${fac}${desc}`;
+      } else {
+        const fac = m.factura ? ` (A Fact: #${m.factura})` : '';
+        detalleTxt += `\n➖ ${fecha} Abono: ${COP(m.monto)}${fac}`;
+      }
+    });
+  }
+
+  if(alDia){
+    return `Hola ${nombre} 👋 Le escribo de *${t}*.\n\nLe confirmamos que su cuenta está *al día*. ¡Muchas gracias por su puntualidad y confianza! 🙌${detalleTxt}\n\n📌 *Saldo pendiente:* ${COP(0)}${firma}`;
+  }
+  return `Hola ${nombre} 👋 Le escribo de *${t}*.\n\nLe comparto el estado de su cuenta con nosotros:${detalleTxt}\n\n📌 *Saldo pendiente:* ${COP(saldo)}\n\nCuando pueda me colabora, ¡mil gracias! 🙏${firma}`;
+}
+
+function enviarWhatsAppCliente(c, saldo){
+  let msg = (CFG.plantilla && CFG.plantilla.trim())
+    ? CFG.plantilla.replaceAll('{nombre}', c.nombre).replaceAll('{monto}', COP(saldo)).replaceAll('{tienda}', CFG.tienda || 'la tienda')
+    : mensajeDefault(c.nombre.split(' ')[0] ? ('Don/Doña ' + c.nombre.split(' ').slice(-1)[0]) : c.nombre, saldo, c.id);
+
+  const el = openView(`
+    <div class="vhead"><button class="x">‹</button><h2>Enviar comprobante</h2></div>
+    <div class="vbody">
+      <div class="notice">Revisa el comprobante antes de enviarlo por WhatsApp.</div>
+      <label class="f">Mensaje</label>
+      <textarea class="f" id="msg" rows="11">${esc(msg)}</textarea>
+      ${c.telefono ? '' : '<div class="notice" style="border-color:var(--amber)">Este cliente no tiene teléfono guardado. Agrégalo en su perfil para enviar directo.</div>'}
+      <div style="height:20px"></div>
+      <button class="btn btn-wa" id="enviar">Abrir WhatsApp</button>
+      <div style="height:10px"></div>
+      <button class="btn btn-ghost" id="copiar">Copiar mensaje</button>
+    </div>`);
+
+  el.querySelector('.x').onclick = () => closeView(el);
+  el.querySelector('#enviar').onclick = () => {
+    const texto = encodeURIComponent(el.querySelector('#msg').value);
+    let phone = (c.telefono || '').replace(/\D/g, '');
+    if(phone && phone.length === 10) phone = '57' + phone;
+    const url = phone ? `https://wa.me/${phone}?text=${texto}` : `https://wa.me/?text=${texto}`;
+    window.open(url, '_blank');
+  };
+  el.querySelector('#copiar').onclick = async () => {
+    try { 
+      await navigator.clipboard.writeText(el.querySelector('#msg').value); 
+      toast('Mensaje copiado ✔'); 
+    } catch { 
+      toast('Mantén presionado para copiar'); 
+    }
+  };
+}
+
+/* ============================================================
+   AJUSTES & RESPALDOS (EXCEL, CSV, JSON)
+   ============================================================ */
+const modalBg=document.getElementById('modalBg'), modalBox=document.getElementById('modalBox');
+function openModal(html){ modalBox.innerHTML='<div class="grip"></div>'+html; modalBg.classList.add('open'); }
+function closeModal(){ modalBg.classList.remove('open'); }
+modalBg.onclick=e=>{ if(e.target===modalBg) closeModal(); };
+
+function abrirAjustes(){
+  openModal(`
+    <h2>Ajustes</h2>
+    <label class="f">Nombre de tu tienda</label>
+    <input class="f" id="cfgTienda" value="${esc(CFG.tienda)}" placeholder="Ej: Tienda La Esquina">
+    <label class="f">Tu nombre (firma del tendero)</label>
+    <input class="f" id="cfgTendero" value="${esc(CFG.tendero)}" placeholder="Ej: Don Carlos">
+    <label class="f">Plantilla de WhatsApp (opcional)</label>
+    <textarea class="f" id="cfgPlantilla" rows="4" placeholder="Deja vacío para usar el formato automático con facturas e historial.">${esc(CFG.plantilla||'')}</textarea>
+    <div style="height:16px"></div>
+    <button class="btn btn-green" id="cfgGuardar">Guardar ajustes</button>
+    <div style="height:22px"></div>
+    <h4>Copia de seguridad y datos</h4>
+    <button class="btn btn-green" onclick="abrirRespaldo()">📤 Copia de seguridad (Excel / WhatsApp)</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-ghost" onclick="mostrarPolitica()">Política de datos (Habeas Data)</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-ghost" style="color:var(--red)" onclick="borrarTodo()">Borrar todos los datos</button>
+    <div style="height:14px"></div>
+    <p style="text-align:center;font-size:11px">Desarrollada por <b>VIBRAS POSITIVAS HM</b> — Derechos de Autor Reservados</p>
+  `);
+  modalBox.querySelector('#cfgGuardar').onclick=async()=>{
+    CFG.tienda=modalBox.querySelector('#cfgTienda').value.trim()||'Mi tienda';
+    CFG.tendero=modalBox.querySelector('#cfgTendero').value.trim();
+    CFG.plantilla=modalBox.querySelector('#cfgPlantilla').value.trim();
+    await guardarCfg(); closeModal(); toast('Ajustes guardados ✔');
+  };
+}
+
+function mostrarPolitica(){
+  openModal(`
+    <h2>Política de datos personales</h2>
+    <p><b>Responsable:</b> ${esc(CFG.tienda||'La tienda')}.</p>
+    <p><b>Finalidad:</b> registrar y gestionar los fiados, abonos y cobros por WhatsApp conforme a la Ley 1581 de 2012.</p>
+    <p><b>Almacenamiento:</b> los datos viven 100% en la memoria local de tu dispositivo bajo IndexedDB. No se envían a servidores de internet.</p>
+    <div style="height:14px"></div>
+    <button class="btn btn-green" onclick="closeModal()">Entendido</button>
+  `);
+}
+
+function resumenDatos(){
+  const filas = CLIENTES.map(c=>{
+    const ms = MOVS.filter(m=>m.clienteId===c.id);
+    const fiado = ms.filter(m=>m.tipo==='fiado').reduce((s,m)=>s+(+m.monto||0),0);
+    const abono = ms.filter(m=>m.tipo==='abono').reduce((s,m)=>s+(+m.monto||0),0);
+    return { c, movs:ms.length, fiado, abono, saldo: fiado-abono, dias: deudaMasVieja(c.id) };
+  }).sort((a,b)=> b.saldo-a.saldo || a.c.nombre.localeCompare(b.c.nombre));
+  const totalFiado = filas.reduce((s,x)=>s+x.fiado,0);
+  const totalAbono = filas.reduce((s,x)=>s+x.abono,0);
+  const porCobrar  = filas.filter(x=>x.saldo>0.5).reduce((s,x)=>s+x.saldo,0);
+  const deben = filas.filter(x=>x.saldo>0.5).length;
+  return { filas, totalFiado, totalAbono, porCobrar, deben, alDia: filas.length-deben, nMovs: MOVS.length };
+}
+
+function abrirRespaldo(){
+  const R = resumenDatos();
+  openModal(`
+    <h2>Copia de seguridad</h2>
+    <p>Tus cuentas están seguras en este dispositivo. Puedes exportarlas cuando desees.</p>
+    <div class="notice">
+      Tienes <b>${R.filas.length} clientes</b> y <b>${COP(R.porCobrar)}</b> pendientes en la calle.
+    </div>
+
+    <h4>1 · Excel</h4>
+    <button class="btn btn-green" onclick="exportarExcel(true)">📊 Sacar copia en Excel</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-ghost" onclick="exportarCSV(true)">Bajar en CSV</button>
+
+    <h4>2 · Respaldo para restaurar</h4>
+    <button class="btn btn-ghost" onclick="exportar()">💾 Bajar respaldo (.json)</button>
+    <div style="height:8px"></div>
+    <button class="btn btn-ghost" onclick="document.getElementById('rFile').click()">♻️ Restaurar desde archivo .json</button>
+    <input type="file" id="rFile" accept=".json,application/json" style="display:none" onchange="restaurarDesdeInput(this)">
+
+    <div style="height:16px"></div>
+    <button class="btn btn-green" onclick="closeModal()">Listo</button>
+  `);
+}
+
+async function exportar(){
+  const data={version:1,exportado:isoCO(),config:CFG,clientes:CLIENTES,movimientos:MOVS};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  await compartirODescargar(blob,'fiado-respaldo-'+nowCO().toLocaleDateString('en-CA',{timeZone:'America/Bogota'})+'.json','Respaldo Fiado');
+}
+
+function restaurarDesdeInput(inp){
+  const f=inp.files&&inp.files[0];
+  if(f) restaurarArchivo(f);
+}
+
+async function restaurarArchivo(file){
+  try{
+    const txt = await file.text();
+    const data = JSON.parse(txt);
+    if(!data || !Array.isArray(data.clientes) || !Array.isArray(data.movimientos)) throw new Error('formato');
+    if(!confirm('Se van a restaurar '+data.clientes.length+' clientes y '+data.movimientos.length+' movimientos.\n\n¿Continuar?')) return;
+    for(const c of data.clientes){ if(c && c.id) await put('clientes',c); }
+    for(const m of data.movimientos){ if(m && m.id) await put('movimientos',m); }
+    await cargarTodo(); filtro=''; render(); closeModal();
+    toast('Restauración completada con éxito ✔');
+  }catch(e){
+    alert('No se pudo leer el archivo. Asegúrate de que sea un respaldo válido .json.');
+  }
+}
+
+async function exportarExcel(conTelefono){
+  if(!CLIENTES.length){ toast('No hay datos para exportar'); return; }
+  const R = resumenDatos();
+  let csv = '\ufeffCliente;Telefono;Saldo Actual;Total Fiado;Total Abonado;Dias;Estado\n';
+  R.filas.forEach(x => {
+    csv += `"${x.c.nombre}";"${x.c.telefono||''}";${x.saldo};${x.fiado};${x.abono};${x.dias};"${x.saldo>0.5?'Debe':'Al día'}"\n`;
+  });
+  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  await compartirODescargar(blob, 'Libreta-Fiados-'+nowCO().toLocaleDateString('en-CA')+'.csv', 'Respaldo de Clientes');
+}
+
+async function exportarCSV(conTelefono){
+  exportarExcel(conTelefono);
+}
+
+async function compartirODescargar(blob, filename, titulo){
+  try{
+    const file = new File([blob], filename, {type: blob.type});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:titulo, text:titulo});
+      toast('Archivo compartido ✔'); return;
+    }
+  }catch(e){}
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),5000);
+  toast('Archivo descargado ✔');
+}
+
+async function borrarTodo(){
+  if(!confirm('¿Borrar TODOS los clientes y cuentas? Te sugerimos exportar una copia antes.')) return;
+  await clearStore('clientes'); await clearStore('movimientos');
+  await cargarTodo(); filtro=''; render(); closeModal(); toast('Datos eliminados');
+}
+
+async function cargarEjemplo(){
+  const demo=[
+    {n:'Carlos Mendoza',t:'3001234567',fiados:[[90000,'Mercado quincena',2,'104']],abonos:[[20000,1,'104']]},
+    {n:'Don Pedro',t:'3109876543',fiados:[[45000,'2 libras de arroz y aceite',4,'88']],abonos:[]},
+    {n:'Doña Carmen',t:'3155551212',fiados:[[15000,'Huevos y leche',1,'']],abonos:[]}
+  ];
+  for(const d of demo){
+    const cid=uid();
+    await put('clientes',{id:cid,nombre:d.n,telefono:d.t,consentimiento:!!d.t,fechaConsentimiento:isoCO(),creado:isoCO()});
+    for(const [m,desc,dias,fac] of d.fiados){ 
+      const f=nowCO(); f.setDate(f.getDate()-dias); 
+      await put('movimientos',{id:uid(),clienteId:cid,tipo:'fiado',monto:m,descripcion:desc,factura:fac||'',fecha:f.toISOString(),creado:f.toISOString()}); 
+    }
+    for(const [m,dias,fac] of d.abonos){ 
+      const f=nowCO(); f.setDate(f.getDate()-dias); 
+      await put('movimientos',{id:uid(),clienteId:cid,tipo:'abono',monto:m,descripcion:'',factura:fac||'',fecha:f.toISOString(),creado:f.toISOString()}); 
+    }
+  }
+  await cargarTodo(); render(); toast('Datos de ejemplo cargados ✔');
+}
+
+let toastT;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2500);}
+function tickClock(){
+  const d=nowCO();
+  const hora=d.toLocaleTimeString('es-CO',{timeZone:'America/Bogota',hour:'2-digit',minute:'2-digit',hour12:true});
+  const fecha=d.toLocaleDateString('es-CO',{timeZone:'America/Bogota',weekday:'short',day:'numeric',month:'short'});
+  const c=document.getElementById('clock'); if(c) c.innerHTML=`<b>${hora}</b><span>${fecha}</span>`;
+}
+
+document.getElementById('btnGear').onclick=abrirAjustes;
+window.abrirCliente=abrirCliente; window.abrirFiar=abrirFiar; window.abrirAbono=abrirAbono;
+window.abrirNuevoCliente=abrirNuevoCliente; window.cargarEjemplo=cargarEjemplo;
+window.mostrarPolitica=mostrarPolitica; window.exportar=exportar; window.borrarTodo=borrarTodo; window.closeModal=closeModal;
+window.abrirRespaldo=abrirRespaldo; window.exportarExcel=exportarExcel; window.exportarCSV=exportarCSV;
+window.cambiarFiltroVista=cambiarFiltroVista; window.toggleVoiceRecognition=toggleVoiceRecognition;
+
+(async function init(){
+  tickClock(); setInterval(tickClock,1000*20);
+  try{ await openDB(); await cargarTodo(); render(); }
+  catch(e){ main.innerHTML='<div class="empty"><div class="em">⚠️</div><h3>Error de almacenamiento</h3><p>Abre el navegador en modo normal para guardar tus datos en el dispositivo.</p></div>'; console.error(e); }
+})();
+</script>
 </body>
 </html>
