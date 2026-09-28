@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Fiado Fácil - Libreta Digital</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    body {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .pulse-recording {
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col font-sans pb-24">
+
+  <!-- Encabezado Fijo -->
+  <header class="bg-emerald-700 text-white shadow-md sticky top-0 z-30 px-4 py-3">
+    <div class="max-w-2xl mx-auto flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <i data-lucide="book-open-check" class="w-6 h-6 text-emerald-200"></i>
+          <h1 class="text-xl font-black tracking-tight">Fiado Fácil</h1>
+        </div>
+        <p class="text-xs text-emerald-100 font-medium">Libreta Inteligente por Voz & WhatsApp</p>
+      </div>
+      <button onclick="toggleModal('manualModal')" class="bg-emerald-800 hover:bg-emerald-900 border border-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition">
+        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+        <span>Manual</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal -->
+  <main class="max-w-2xl mx-auto w-full px-4 pt-4 flex-1">
+
+    <!-- Tarjeta de Resumen Global -->
+    <div class="bg-gradient-to-br from-emerald-800 to-teal-900 text-white rounded-2xl p-5 shadow-lg mb-5 border border-emerald-700/50">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-xs uppercase tracking-wider font-semibold text-emerald-200">Total Fiado en la Calle</span>
+          <div id="totalDebtDisplay" class="text-3xl font-black mt-1 text-white tracking-tight">$0</div>
+        </div>
+        <div class="bg-emerald-950/60 border border-emerald-500/30 px-3 py-2 rounded-xl text-right">
+          <span class="text-[11px] block text-emerald-200 uppercase font-bold">Clientes Deudores</span>
+          <span id="debtorsCountDisplay" class="text-xl font-black text-amber-300">0</span>
+        </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-emerald-700/50 flex items-center justify-between text-xs text-emerald-100">
+        <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-300"></i> Registros respaldados localmente</span>
+        <span id="lastUpdateText" class="text-[11px] text-emerald-200">Hoy</span>
+      </div>
+    </div>
+
+    <!-- Barra de Búsqueda de Clientes -->
+    <div class="relative mb-4">
+      <input type="text" id="searchInput" oninput="renderDebtors()" placeholder="Buscar cliente por nombre..." class="w-full bg-white border border-slate-300 rounded-xl py-3 pl-11 pr-4 text-base font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent">
+      <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5"></i>
+    </div>
+
+    <!-- Banner de Registro por Voz en Vivo -->
+    <div id="voiceStatusCard" class="hidden mb-4 bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-center gap-3 shadow-sm">
+      <div class="w-3 h-3 rounded-full bg-amber-500 animate-ping"></div>
+      <div class="flex-1">
+        <p class="text-xs font-bold text-amber-900 uppercase">Escuchando comando...</p>
+        <p id="voiceLiveText" class="text-sm font-semibold text-slate-700 italic">"..."</p>
+      </div>
+    </div>
+
+    <!-- Lista de Deudores -->
+    <div class="flex items-center justify-between mb-3 px-1">
+      <h2 class="text-sm font-black text-slate-700 uppercase tracking-wide">Cuentas Pendientes</h2>
+      <span class="text-xs text-slate-500 font-medium">Toque una cuenta para ver abonos</span>
+    </div>
+
+    <div id="debtorsList" class="space-y-3">
+      <!-- Se genera dinámicamente con JavaScript -->
+    </div>
+
+    <!-- Estado Vacío -->
+    <div id="emptyState" class="hidden text-center py-12 px-4 bg-white rounded-2xl border border-dashed border-slate-300 mt-2">
+      <i data-lucide="check-circle-2" class="w-12 h-12 text-emerald-500 mx-auto mb-2 opacity-80"></i>
+      <h3 class="text-base font-bold text-slate-800">¡Al día! No hay cuentas pendientes</h3>
+      <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">Usa el botón de micrófono abajo o el botón 'Manual' para anotar un nuevo fiado.</p>
+    </div>
+  </main>
+
+  <!-- Barra de Acción Flotante Inferior -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 z-40">
+    <div class="max-w-2xl mx-auto flex items-center justify-between gap-3">
+      <div class="text-xs text-slate-600 font-medium leading-tight">
+        <span class="font-bold block text-slate-800">Comandos de voz:</span>
+        "Fío a Pedro 5000" ó "Pedro abonó 2000"
+      </div>
+
+      <!-- Botón de Micrófono Principal -->
+      <button id="micBtn" onclick="toggleSpeechRecognition()" class="bg-red-600 hover:bg-red-700 text-white font-bold p-3.5 rounded-full shadow-lg flex items-center justify-center transition active:scale-95">
+        <i id="micIcon" data-lucide="mic" class="w-7 h-7"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Registro Manual / Simulador WhatsApp -->
+  <div id="manualModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-150">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i data-lucide="edit-3" class="w-5 h-5 text-emerald-600"></i> Registrar Operación
+        </h3>
+        <button onclick="toggleModal('manualModal')" class="text-slate-400 hover:text-slate-600 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="recordForm" onsubmit="handleManualSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tipo de Movimiento</label>
+          <div class="grid grid-cols-2 gap-2">
+            <label class="flex items-center justify-center gap-2 border border-slate-300 p-2.5 rounded-xl cursor-pointer text-xs font-bold has-[:checked]:bg-red-50 has-[:checked]:border-red-500 has-[:checked]:text-red-700">
+              <input type="radio" name="opType" value="fiado" checked class="hidden">
+              <i data-lucide="arrow-up-right" class="w-4 h-4"></i> Fiar (+)
+            </label>
+            <label class="flex items-center justify-center gap-2 border border-slate-300 p-2.5 rounded-xl cursor-pointer text-xs font-bold has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 has-[:checked]:text-emerald-700">
+              <input type="radio" name="opType" value="abono" class="hidden">
+              <i data-lucide="arrow-down-left" class="w-4 h-4"></i> Abono / Pago (-)
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nombre del Cliente</label>
+          <input type="text" id="clientNameInput" required placeholder="Ej. Don Pedro, Doña Carmen" class="w-full border border-slate-300 rounded-xl p-3 text-sm font-semibold focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Monto en Pesos ($ COP)</label>
+          <input type="number" id="amountInput" required step="100" min="100" placeholder="10000" class="w-full border border-slate-300 rounded-xl p-3 text-lg font-black text-slate-800 focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Detalle o Producto (Opcional)</label>
+          <input type="text" id="detailInput" placeholder="Ej. 2 libras de arroz y aceite" class="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-medium focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl text-sm shadow-md active:scale-98 transition flex items-center justify-center gap-2">
+            <i data-lucide="save" class="w-4 h-4"></i> Guardar en Libreta
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Historial Detallado de Cliente -->
+  <div id="historyModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-100 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-3">
+        <div>
+          <h3 id="historyClientName" class="text-lg font-black text-slate-800 leading-tight">Cliente</h3>
+          <p id="historyClientBalance" class="text-sm font-bold text-red-600">Saldo: $0</p>
+        </div>
+        <button onclick="toggleModal('historyModal')" class="text-slate-400 hover:text-slate-600 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="historyEntries" class="flex-1 overflow-y-auto space-y-2 py-2 pr-1 text-xs">
+        <!-- Rellenado por JS -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-200 mt-2 flex gap-2">
+        <button id="sendWhatsappBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="message-circle" class="w-4 h-4"></i> Recordar Saldo
+        </button>
+        <button id="settleAllBtn" class="bg-slate-800 hover:bg-black text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition">
+          <i data-lucide="check" class="w-4 h-4"></i> Saldar Todo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pie de Página y Derechos de Autor -->
+  <footer class="mt-auto py-6 text-center text-xs text-slate-500 border-t border-slate-200 bg-slate-50">
+    <p class="font-bold text-slate-700">Fiado Fácil &bull; Libreta de Mostrador</p>
+    <p class="text-[11px] mt-0.5 text-slate-400">&copy; 2026 VIBRAS POSITIVAS HM. Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- Lógica de la Aplicación -->
+  <script>
+    // Inicialización del Almacén de Datos
+    const STORAGE_KEY = 'fiado_facil_db';
+    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+      clients: {} // Estructura: { "Don Pedro": { total: 10000, history: [...] } }
+    };
+
+    function saveDB() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+      renderDebtors();
+    }
+
+    const formatCurrency = (val) => {
+      return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+    };
+
+    // Renderizar listado de deudores
+    function renderDebtors() {
+      const container = document.getElementById('debtorsList');
+      const emptyState = document.getElementById('emptyState');
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      
+      container.innerHTML = '';
+      let totalSum = 0;
+      let count = 0;
+
+      const clientNames = Object.keys(db.clients);
+
+      clientNames.forEach(name => {
+        const client = db.clients[name];
+        if (client.total > 0) {
+          totalSum += client.total;
+          count++;
+
+          if (search && !name.toLowerCase().includes(search)) return;
+
+          const card = document.createElement('div');
+          card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-slate-300 transition flex items-center justify-between gap-3";
+          
+          card.innerHTML = `
+            <div class="cursor-pointer flex-1" onclick="openHistory('${encodeURIComponent(name)}')">
+              <div class="flex items-center gap-2">
+                <span class="text-base font-bold text-slate-900 tracking-tight capitalize">${name}</span>
+                <span class="bg-red-100 text-red-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase">Debe</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Último mov: ${client.history.length > 0 ? client.history[client.history.length - 1].date : 'Hoy'}</p>
+            </div>
+            <div class="text-right">
+              <div class="text-lg font-black text-red-600 tracking-tight">${formatCurrency(client.total)}</div>
+              <div class="flex items-center justify-end gap-1.5 mt-1.5">
+                <button onclick="quickPay('${encodeURIComponent(name)}')" class="bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-xs border border-slate-300 flex items-center gap-1 transition">
+                  <i data-lucide="check" class="w-3.5 h-3.5"></i> Saldar
+                </button>
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        }
+      });
+
+      document.getElementById('totalDebtDisplay').innerText = formatCurrency(totalSum);
+      document.getElementById('debtorsCountDisplay').innerText = count;
+
+      if (count === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      lucide.createIcons();
+    }
+
+    // Procesador Inteligente de Comandos de Voz y Texto
+    function processVoiceCommand(text) {
+      const lower = text.toLowerCase().trim();
+      let isAbono = lower.includes('abonó') || lower.includes('abono') || lower.includes('pagó') || lower.includes('pago') || lower.includes('dio');
+      
+      // Extracción de número/monto
+      const matches = lower.match(/\b\d+(\.\d+)?\b/g);
+      let amount = 0;
+      if (matches) {
+        amount = parseInt(matches[matches.length - 1].replace(/\./g, ''), 10);
+      } else {
+        // Mapeo básico de números hablados comunes
+        if (lower.includes('mil')) {
+          if (lower.includes('diez')) amount = 10000;
+          else if (lower.includes('cinco')) amount = 5000;
+          else if (lower.includes('veinte')) amount = 20000;
+          else if (lower.includes('quince')) amount = 15000;
+          else if (lower.includes('dos')) amount = 2000;
+          else amount = 1000;
+        }
+      }
+
+      if (!amount) {
+        alert("No pude detectar el monto con claridad en: '" + text + "'. Intenta de nuevo.");
+        return;
+      }
+
+      // Limpieza de nombre
+      let cleaned = lower
+        .replace(/fio a/g, '')
+        .replace(/fiar a/g, '')
+        .replace(/fio/g, '')
+        .replace(/abono a/g, '')
+        .replace(/abonó a/g, '')
+        .replace(/abono/g, '')
+        .replace(/abonó/g, '')
+        .replace(/me dio/g, '')
+        .replace(/me pago/g, '')
+        .replace(/me pagó/g, '')
+        .replace(/pesos/g, '')
+        .replace(/mil/g, '')
+        .replace(/\b\d+\b/g, '')
+        .trim();
+
+      let clientName = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      if (!clientName || clientName.length < 2) clientName = "Cliente Mostrador";
+
+      registerTransaction(clientName, amount, isAbono ? 'abono' : 'fiado', 'Voz: "' + text + '"');
+    }
+
+    // Registrar Transacción en Memoria
+    function registerTransaction(clientName, amount, type, detail) {
+      if (!db.clients[clientName]) {
+        db.clients[clientName] = { total: 0, history: [] };
+      }
+
+      const dateStr = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+      if (type === 'fiado') {
+        db.clients[clientName].total += amount;
+        db.clients[clientName].history.push({ type: 'fiado', amount: amount, detail: detail, date: dateStr });
+      } else {
+        db.clients[clientName].total = Math.max(0, db.clients[clientName].total - amount);
+        db.clients[clientName].history.push({ type: 'abono', amount: amount, detail: detail, date: dateStr });
+      }
+
+      saveDB();
+    }
+
+    // Envío Manual
+    function handleManualSubmit(e) {
+      e.preventDefault();
+      const type = document.querySelector('input[name="opType"]:checked').value;
+      const name = document.getElementById('clientNameInput').value.trim();
+      const amount = parseInt(document.getElementById('amountInput').value, 10);
+      const detail = document.getElementById('detailInput').value.trim() || 'Mostrador';
+
+      if (!name || isNaN(amount) || amount <= 0) return;
+
+      registerTransaction(name, amount, type, detail);
+      toggleModal('manualModal');
+      e.target.reset();
+    }
+
+    // Saldado Rápido Total
+    function quickPay(encodedName) {
+      const name = decodeURIComponent(encodedName);
+      if (confirm(`¿Marcar la cuenta de ${name} como totalmente pagada?`)) {
+        const client = db.clients[name];
+        if (client) {
+          const dateStr = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+          client.history.push({ type: 'abono', amount: client.total, detail: 'Cancelación total', date: dateStr });
+          client.total = 0;
+          saveDB();
+        }
+      }
+    }
+
+    // Ver Historial
+    function openHistory(encodedName) {
+      const name = decodeURIComponent(encodedName);
+      const client = db.clients[name];
+      if (!client) return;
+
+      document.getElementById('historyClientName').innerText = name;
+      document.getElementById('historyClientBalance').innerText = 'Saldo Pendiente: ' + formatCurrency(client.total);
+      
+      const historyContainer = document.getElementById('historyEntries');
+      historyContainer.innerHTML = '';
+
+      if (client.history.length === 0) {
+        historyContainer.innerHTML = '<p class="text-slate-400 text-center py-4">Sin registros previos.</p>';
+      } else {
+        client.history.slice().reverse().forEach(h => {
+          const item = document.createElement('div');
+          item.className = `p-2.5 rounded-lg border flex items-center justify-between ${h.type === 'fiado' ? 'bg-red-50/60 border-red-200' : 'bg-emerald-50/60 border-emerald-200'}`;
+          item.innerHTML = `
+            <div>
+              <span class="font-bold block ${h.type === 'fiado' ? 'text-red-700' : 'text-emerald-700'} uppercase text-[10px]">
+                ${h.type === 'fiado' ? '+ Fiado' : '- Abono / Pago'}
+              </span>
+              <span class="text-slate-600 block text-xs font-medium">${h.detail || 'Sin detalle'}</span>
+              <span class="text-[10px] text-slate-400">${h.date}</span>
+            </div>
+            <span class="text-sm font-black ${h.type === 'fiado' ? 'text-red-600' : 'text-emerald-600'}">
+              ${formatCurrency(h.amount)}
+            </span>
+          `;
+          historyContainer.appendChild(item);
+        });
+      }
+
+      // Configurar botones del modal de historial
+      document.getElementById('sendWhatsappBtn').onclick = () => {
+        const msg = encodeURIComponent(`Hola ${name}, un cordial saludo de la tienda. Tu saldo pendiente en la libreta es de ${formatCurrency(client.total)}. ¡Muchas gracias por tu pago!`);
+        window.open(`https://wa.me/?text=${msg}`, '_blank');
+      };
+
+      document.getElementById('settleAllBtn').onclick = () => {
+        quickPay(encodedName);
+        toggleModal('historyModal');
+      };
+
+      toggleModal('historyModal');
+    }
+
+    // Utilidad de Modales
+    function toggleModal(id) {
+      const m = document.getElementById(id);
+      m.classList.toggle('hidden');
+    }
+
+    // Reconocimiento de Voz Nativo (Web Speech API)
+    let recognition;
+    let isRecording = false;
+
+    function toggleSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Tu navegador no soporta entrada de voz directa. Usa el botón 'Manual' arriba para registrar.");
+        return;
+      }
+
+      const micBtn = document.getElementById('micBtn');
+      const statusCard = document.getElementById('voiceStatusCard');
+      const liveText = document.getElementById('voiceLiveText');
+
+      if (isRecording) {
+        recognition.stop();
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'es-CO';
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        isRecording = true;
+        micBtn.classList.add('pulse-recording');
+        statusCard.classList.remove('hidden');
+        liveText.innerText = "Diga: 'Fío a Don Pedro diez mil'...";
+      };
+
+      recognition.onresult = (e) => {
+        const transcript = Array.from(e.results)
+          .map(r => r[0].transcript)
+          .join('');
+        liveText.innerText = `"${transcript}"`;
+      };
+
+      recognition.onend = () => {
+        isRecording = false;
+        micBtn.classList.remove('pulse-recording');
+        statusCard.classList.add('hidden');
+        const spoken = liveText.innerText.replace(/"/g, '').trim();
+        if (spoken && spoken !== 'Diga: \'Fío a Don Pedro diez mil\'...') {
+          processVoiceCommand(spoken);
+        }
+      };
+
+      recognition.onerror = (e) => {
+        isRecording = false;
+        micBtn.classList.remove('pulse-recording');
+        statusCard.classList.add('hidden');
+        console.error("Error en reconocimiento de voz:", e.error);
+      };
+
+      recognition.start();
+    }
+
+    // Inicializar al cargar
+    window.addEventListener('DOMContentLoaded', () => {
+      renderDebtors();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
